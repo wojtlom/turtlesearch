@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>TurtleSearch</title>
+  <style>
+    body {
+      background-color: #e0ffe0;
+      font-family: monospace;
+      padding: 40px;
+      margin: 0;
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    form {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      width: 100%;
+      max-width: 800px;
+    }
+    input[type="text"] {
+      width: 80%; /* Szerokość paska wyszukiwania */
+      padding: 8px;
+      font-size: 16px;
+      border: 2px solid #333;
+      border-radius: 4px;
+    }
+    button {
+      padding: 8px 20px;
+      font-size: 16px;
+      margin-left: 10px;
+      background-color: #44aa44;
+      border: none;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .status-btn {
+      padding: 10px 20px;
+      background-color: #44aa44;
+      border: none;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 20px;
+    }
+    .status-btn:hover {
+      background-color: #388e38;
+    }
+    img {
+      max-width: 200px;
+      margin-top: 25px;
+      display: block;
+    }
+    #results {
+      margin-top: 40px;
+      text-align: left;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .result {
+      background: #fff;
+      margin-bottom: 20px;
+      padding: 10px;
+      border-radius: 8px;
+      border-left: 5px solid #228822;
+    }
+    .result a {
+      font-weight: bold;
+      font-size: 18px;
+      color: #005500;
+      text-decoration: none;
+    }
+    .result p {
+      margin: 5px 0;
+      color: #444;
+    }
+    /* Responsywność */
+    @media (max-width: 600px) {
+      input[type="text"], button, .status-btn {
+        width: 90%;
+      }
+    }
+    /* Styl dla stopki */
+    .footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background-color: #e0ffe0;
+      text-align: center;
+      padding: 15px 0;
+      box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <h1>TurtleSearch</h1>
+  <h2>Prosta, lekka, anonimowa wyszukiwarka</h2>
+
+  <img src="turtle.png" alt="logo" />
+  <form id="searchForm">
+    <input type="text" id="query" placeholder="Spytaj żółwia o co chcesz :)" required>
+    <button type="submit">Wyszukaj</button>
+  </form>
+
+  <div id="results"></div>
+
+  <!-- Przycisk i napisy w stopce -->
+  <div class="footer">
+    <button class="status-btn" onclick="window.open('https://stats.uptimerobot.com/kJR24PcORL', '_blank')">
+      Sprawdź status serwera API
+    </button>
+    <p>Oparte na silniku google.com  |  @wojtlom</p>
+    <p>wersja 1.6</p>
+  </div>
+
+  <script>
+    const backendURL = "https://api.wojtlom.xyz/search"; // Zmień na swój adres backendu!
+
+    document.getElementById("searchForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const query = document.getElementById("query").value;
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "<p>⏳ Żółw już biegnie po odpowiedź...</p>";
+
+      try {
+        const response = await fetch(`${backendURL}?q=${encodeURIComponent(query)}`);
+        if (!response.ok) {
+          throw new Error(`Błąd połączenia: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.web || !data.web.results) {
+          resultsDiv.innerHTML = "<p>❌ Żółw nie spotkał żadnych wyników na swojej drodze...</p>";
+          return;
+        }
+
+        const html = data.web.results.map(result => `
+          <div class="result">
+            <a href="${result.url}" target="_blank">${result.title}</a>
+            <p>${result.description}</p>
+          </div>
+        `).join("");
+
+        resultsDiv.innerHTML = html;
+      } catch (err) {
+        resultsDiv.innerHTML = `<p>❌ Żółw napotkał błąd w trakcie wyszukiwania :( ${err.message}</p>`;
+        console.error("Błąd:", err);
+      }
+    });
+  </script>
+</body>
+</html>
